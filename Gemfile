@@ -46,8 +46,6 @@ end
 # tests
 group :test, :development do
   gem 'faker'
-  gem 'rubocop'
-  gem 'rubocop-rspec'
   gem 'thin', '1.6.4'
   gem 'byebug', platform: :mri
   gem 'rspec-rails'

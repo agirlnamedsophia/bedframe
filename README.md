@@ -2,13 +2,14 @@
 
 The apps handles warehouses, shipments, and products.
 
-* A shipment is a representation of a set of products that need to be shipped somewhere from a warehouse.
-* A product has inventory.
-* A warehouse has many shipments and warehouse products (with limited inventory) to ship
-* When the warehouse meets the needs of the shipment, it fulfills the shipment and updates its warehouse product stock tally
+* A warehouse has many shipments and warehouse products (with limited inventory) to ship,
+  and it is the goal of this app to find the right warehouse for each shipment
 
-* Ruby version
-  - ruby 2.2.3
+* When the warehouse meets the needs of the shipment, it updates its warehouse_product available inventory
+  (kind of like a stock tally) and can then fulfill the shipment
+
+* Ruby version and gemset
+  - ruby 2.2.3@bedframe
 
 * System dependencies
   - postgres
@@ -23,4 +24,6 @@ The apps handles warehouses, shipments, and products.
 * How to run the test suite
  - spring rspec spec
 
-* Services (job queues, cache servers, search engines, etc.)
+* Services
+ - it would make sense to set up a cron job to fulfill! (ie: "ship") any shipments that are processing
+ after a certain point, or to set up a controller action for the WMS to trigger when they're ready
