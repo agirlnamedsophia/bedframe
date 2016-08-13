@@ -14,15 +14,16 @@ The apps handles warehouses, shipments, and products.
 * System dependencies
   - postgres
 
-* Configuration
-
 * Database creation
-  - rake db:setup
+  - `rake db:setup && rake db:reset`
+  this will seed some phony data if you want to mess around in the console, 
+  or you can just run the test suite
 
 * Database initialization
 
 * How to run the test suite
- - spring rspec spec
+ - I develop with [ZEUS](https://github.com/burke/zeus) locally, so I just run "zeus test", but you can also
+  run rspec spec
 
 * Services
  - it would make sense to set up a cron job to fulfill! (ie: "ship") any shipments that are processing

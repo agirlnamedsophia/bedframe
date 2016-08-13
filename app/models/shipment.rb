@@ -6,7 +6,7 @@ class Shipment < ActiveRecord::Base
   }
 
   # callbacks
-  before_validation :set_warehouse!, on: :create
+  before_validation :set_warehouse_and_update_warehouse_inventory!, on: :create
 
   # relationships
   belongs_to :warehouse
@@ -25,36 +25,26 @@ class Shipment < ActiveRecord::Base
   }
   validate :at_least_one_product
 
-  def purchased_products_h
-    shipment_products.map do |p|
-      {
-        id: p.product_id,
-        quantity: p.quantity
-      }
-    end
-  end
-
   private
 
-  def set_warehouse!
+  def set_warehouse_and_update_warehouse_inventory!
     return unless shipment_products.present?
-    warehouse = Warehouse.with_available_inventory(shipment_products)
+    products_to_ship = shipment_products
+    warehouse = Warehouse.with_available_inventory(products_to_ship)
+
     if warehouse.present?
       self.warehouse = warehouse
-      # send shipment product hash to warehouse to keep tally of inventory
-      if warehouse_id_changed?
+      if warehouse_id_changed? && on_hold?
         self.status = :processing
       end
-      warehouse.update_available_inventory!(purchased_products_h)
+      warehouse.update_available_inventory!(products_to_ship)
     else
       self.status = :on_hold
     end
   end
 
   def fulfill!
-    shipment_products.map do |sp|
-      sp.product.update_available_inventory!(sp.quantity)
-    end
+    return unless on_hold?
     self.status = :fulfilled
     save
   end

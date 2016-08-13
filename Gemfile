@@ -13,25 +13,13 @@ gem 'sass-rails', '~> 5.0'
 gem 'uglifier', '>= 1.3.0'
 gem 'coffee-rails', '~> 4.2'
 gem 'jquery-rails'
-gem 'jbuilder', '~> 2.5'
 
 group :development do
-  gem 'stackprof'
-  gem 'rack-mini-profiler', require: false
-
   gem 'awesome_print', '~> 1.6.1'
 
   gem 'better_errors'
   gem 'binding_of_caller'
 
-  gem 'flamegraph'
-  gem 'bullet'
-
-  gem 'brakeman', '~> 3.2.1', require: false
-
-  gem 'oink'
-  gem 'rails-erd'
-  gem 'delayed_job_active_record'
   gem 'rails_best_practices'
 
   gem 'listen', '~> 3.0.5'
@@ -57,6 +45,3 @@ group :test do
   gem 'database_cleaner'
   gem 'test_after_commit', '~> 0.4.2'
 end
-
-# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]

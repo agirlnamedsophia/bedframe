@@ -9,7 +9,6 @@ unless Rails.env.production?
     Product.create!(
       name: Faker::Commerce.product_name,
       sku: SecureRandom.hex(5),
-      inventory: 10,
       price: Faker::Commerce.price,
 
     )

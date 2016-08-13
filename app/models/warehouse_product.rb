@@ -1,5 +1,4 @@
 class WarehouseProduct < ActiveRecord::Base
-
   # scopes
   scope :ordered, -> { order(updated_at: :desc) }
 

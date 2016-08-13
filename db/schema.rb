@@ -30,11 +30,10 @@ ActiveRecord::Schema.define(version: 20160812234551) do
 
   create_table "products", force: :cascade do |t|
     t.string   "name"
-    t.integer  "inventory",  default: 0, null: false
     t.string   "sku"
     t.integer  "price"
-    t.datetime "created_at",             null: false
-    t.datetime "updated_at",             null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "shipment_products", force: :cascade do |t|

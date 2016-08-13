@@ -10,6 +10,14 @@ class Warehouse < ActiveRecord::Base
   validates :name, :address_1, :city, :region,
             :country, :postal_code, presence: true
 
+  def active_shipments
+    shipments.processing
+  end
+
+  def fulfilled_shipments
+    shipments.fulfilled
+  end
+
   def fulfill_shipment!(shipment)
     # NOTE in real life this would be called either
     # through a controller action,
@@ -19,12 +27,12 @@ class Warehouse < ActiveRecord::Base
     shipment.fulfill!
   end
 
-  def update_available_inventory!(product_h)
+  def update_available_inventory!(shipment_products)
     warehouse_products.map do |wp|
-      product_h.select do |product|
-        product[:id] == wp.product_id &&
-        wp.decrement_available_inventory!(product[:quantity])
+      products = shipment_products.select do |product|
+        product.product_id == wp.product_id
       end
+      products.map { |sp| wp.decrement_available_inventory!(sp.quantity) }
     end
   end
 

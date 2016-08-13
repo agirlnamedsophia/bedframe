@@ -41,10 +41,4 @@ Rails.application.configure do
   config.action_controller.action_on_unpermitted_parameters = :raise
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
-  config.middleware.use Oink::Middleware
-
-  config.after_initialize do
-    Bullet.enable = true
-    Bullet.bullet_logger = true
-  end
 end
