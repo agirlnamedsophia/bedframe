@@ -7,60 +7,59 @@ RSpec.describe Shipment, type: :model do
     let(:product_b) { create(:product, name: 'Product B') }
     let(:product_c) { create(:product, name: 'Product C') }
 
+    def expect_valid_shipment(shipment, warehouse)
+      expect(shipment.save).to eq true
+      expect(shipment.warehouse).to eq warehouse
+      if warehouse
+        warehouse.warehouse_products.reload
+      end
+    end
+
+    def build_warehouse_products(warehouse, products, inventory)
+      products.each do |product|
+        warehouse.warehouse_products << build(
+          :warehouse_product,
+          product: product,
+          available_inventory: inventory
+        )
+      end
+    end
+
+    def build_shipment_products(shipment, products, quantity)
+      products.each do |product|
+        shipment.shipment_products << build(
+          :shipment_product,
+          shipment: shipment,
+          product: product,
+          quantity: quantity
+        )
+      end
+    end
+
     it 'routes shipments to warehouse with sufficient stock' do
       warehouse_a = create(:warehouse, name: 'Warehouse A')
-      warehouse_a.warehouse_products << build(
-        :warehouse_product,
-        product: product_a,
-        available_inventory: 2
-      )
+      build_warehouse_products(warehouse_a, [product_a], 2)
+
       warehouse_b = create(:warehouse, name: 'Warehouse B')
-      [product_b, product_c].each do |product|
-        warehouse_b.warehouse_products << build(
-          :warehouse_product,
-          product: product,
-          available_inventory: 2
-        )
-      end
+      build_warehouse_products(warehouse_b, [product_b, product_c], 2)
+
       warehouse_c = create(:warehouse, name: 'Warehouse C')
-      [product_a, product_c].each do |product|
-        warehouse_c.warehouse_products << build(
-          :warehouse_product,
-          product: product,
-          available_inventory: 4
-        )
-      end
+      build_warehouse_products(warehouse_c, [product_a, product_c], 4)
 
       # 1) create a shipment and confirm warehouse is accurate
       shipment_a = build(:shipment, name: 'Shipment A', set_custom_products: true)
-      shipment_a.shipment_products << build(
-        :shipment_product,
-        shipment: shipment_a,
-        product: product_a,
-        quantity: 1
-      )
-      expect(shipment_a.save).to eq true
-      expect(shipment_a.warehouse).to eq warehouse_a
+      build_shipment_products(shipment_a, [product_a], 1)
+      expect_valid_shipment(shipment_a, warehouse_a)
 
-      warehouse_a.warehouse_products.reload
-
-      # 2) create another shipment that cannot be fulfilled
+      # 2) create another shipment but one that cannot be fulfilled
       shipment_b = build(:shipment, name: 'Shipment B', set_custom_products: true)
-      [product_a, product_b, product_c].each do |product|
-        shipment_b.shipment_products << build(
-          :shipment_product,
-          shipment: shipment_b,
-          product: product,
-          quantity: 2
-        )
-      end
-      expect(shipment_b.save).to eq true
+      build_shipment_products(shipment_b, [product_a, product_b, product_c], 2)
 
-      # this should not be nil because no warehouse can satisfy this shipment
-      expect(shipment_b.warehouse).to eq nil
-      warehouse_b.warehouse_products.reload
+      # 3. second shipment is still valid, just on_hold
+      expect_valid_shipment(shipment_b, nil)
       expect(shipment_b.status).to eq 'on_hold'
 
+      # so we need to add the right product to the warehouse to satisfy constraints
       warehouse_c.warehouse_products << build(
         :warehouse_product,
         product: product_b,
@@ -69,28 +68,26 @@ RSpec.describe Shipment, type: :model do
       warehouse_c.warehouse_products.reload
 
       shipment_b.send(:set_warehouse!)
-      expect(shipment_b.warehouse).to eq warehouse_c
+      expect_valid_shipment(shipment_b, warehouse_c)
       expect(shipment_b.status).to eq 'processing'
 
-      warehouse_c.warehouse_products.reload
-
       shipment_c = build(:shipment, name: 'Shipment C', set_custom_products: true)
-      [product_a, product_b].each do |product|
-        shipment_c.shipment_products << build(
-          :shipment_product,
-          product: product,
-          shipment: shipment_c,
-          quantity: 1
-        )
-      end
+      build_shipment_products(shipment_c, [product_a, product_b], 1)
 
-      warehouse_b.warehouse_products.reload
-
-      expect(shipment_c.save).to eq true
-      expect(shipment_c.warehouse).to eq warehouse_c
+      expect_valid_shipment(shipment_c, warehouse_c)
     end
 
     it 'sets shipment to :on_hold if no warehouse can satisfy the whole order' do
+      warehouse = create(:warehouse, name: 'Warehouse Without Enough Mattresses')
+      build_warehouse_products(warehouse, [product_a], 1)
+
+      mattresses = create_list(:product, 5)
+      shipment = build(:shipment, name: 'Shipment For 5 Mattresses', set_custom_products: true)
+      build_shipment_products(shipment, mattresses, 1)
+
+      expect_valid_shipment(shipment, nil)
+      expect(shipment.warehouse).to eq nil
+      expect(shipment.status).to eq 'on_hold'
     end
   end
 end
