@@ -21,7 +21,6 @@ class Warehouse < ActiveRecord::Base
   end
 
   def update_available_inventory!(product_h)
-    puts 'UPDATING INVENTORY'
     warehouse_products.map do |wp|
       product_h.select do |p|
         p[:id] == wp.product_id &&
@@ -34,6 +33,10 @@ class Warehouse < ActiveRecord::Base
 
   class << self
     def with_available_inventory(shipment_products)
+      # This isn't working properly OR specs are just caching everything
+      # this needs to find all warehouses that have all
+      # shipment_products in their warehouse_products
+      # and that have enough inventory
       product_ids = shipment_products.map(&:product_id)
 
       # 1. get list of warehouses that house these products

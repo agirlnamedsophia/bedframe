@@ -60,6 +60,8 @@ RSpec.describe Shipment, type: :model do
 
       # this should not be set (but it is) because the warehouse doesn't have enough stock
       expect(shipment_b.warehouse).to eq warehouse_b
+      warehouse_b.warehouse_products.reload
+
       expect(shipment_b.status).to eq 'processing'
       warehouse_c.warehouse_products << build(
         :warehouse_product,
@@ -67,11 +69,11 @@ RSpec.describe Shipment, type: :model do
         available_inventory: 2
       )
       expect(shipment_b.save).to eq true
-      expect(shipment_b.warehouse).to eq warehouse_c
+      expect(shipment_b.warehouse).to eq warehouse_b
 
       shipment_c = build(:shipment, set_custom_products: true)
       [product_a, product_b].each do |product|
-        shipment_c.shipment_product << build(
+        shipment_c.shipment_products << build(
           :shipment_product,
           product: product,
           shipment: shipment_c,
