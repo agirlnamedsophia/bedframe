@@ -11,20 +11,19 @@ class Warehouse < ActiveRecord::Base
             :country, :postal_code, presence: true
 
   def fulfill_shipment!(shipment)
-    # NOTE this would in real life be called either
+    # NOTE in real life this would be called either
     # through a controller action,
     # or a background job or even a separate
     # "Fulfillment" module whose only purpose is to
-
     # fulfill shipment
     shipment.fulfill!
   end
 
   def update_available_inventory!(product_h)
     warehouse_products.map do |wp|
-      product_h.select do |p|
-        p[:id] == wp.product_id &&
-        wp.decrement_available_inventory!(p[:quantity])
+      product_h.select do |product|
+        product[:id] == wp.product_id &&
+        wp.decrement_available_inventory!(product[:quantity])
       end
     end
   end
@@ -33,7 +32,8 @@ class Warehouse < ActiveRecord::Base
 
   class << self
     def with_available_inventory(shipment_products)
-      # 1. get list of warehouses that house these products
+      # get list of warehouses that house these products
+      # IRL could make sense to scope by shipment.address
       query = Warehouse.joins(:warehouse_products)
       clause = []
       clause_args = []
@@ -51,14 +51,13 @@ class Warehouse < ActiveRecord::Base
       query = query.where(*query_args).distinct
 
       warehouse = query.select do |query|
-        # database product_ids
+        # pluck product_ids from DB
         warehouse_product_ids = Set.new(query.warehouse_products.pluck(:product_id))
-        # in memory product_ids
+        # map in memory product_ids
         shipment_product_ids = Set.new(shipment_products.map(&:product_id))
         # find intersection and validate
         ((warehouse_product_ids & shipment_product_ids) == shipment_product_ids) && query
       end.first
-      debugger
       warehouse
     end
   end

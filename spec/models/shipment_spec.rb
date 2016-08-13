@@ -67,6 +67,7 @@ RSpec.describe Shipment, type: :model do
         available_inventory: 2
       )
       warehouse_c.warehouse_products.reload
+
       shipment_b.send(:set_warehouse!)
       expect(shipment_b.warehouse).to eq warehouse_c
       expect(shipment_b.status).to eq 'processing'
@@ -82,13 +83,14 @@ RSpec.describe Shipment, type: :model do
           quantity: 1
         )
       end
+
       warehouse_b.warehouse_products.reload
 
       expect(shipment_c.save).to eq true
-      expect(shipment_c.warehouse).to eq warehouse_b
+      expect(shipment_c.warehouse).to eq warehouse_c
     end
 
-    # it 'sets shipment to :on_hold if no warehouse can satisfy the whole order' do
-    # end
+    it 'sets shipment to :on_hold if no warehouse can satisfy the whole order' do
+    end
   end
 end

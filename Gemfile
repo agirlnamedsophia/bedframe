@@ -34,8 +34,6 @@ group :development do
   gem 'delayed_job_active_record'
   gem 'rails_best_practices'
 
-    # Access an IRB console on exception pages or by using <%= console %> anywhere in the code.
-  gem 'web-console'
   gem 'listen', '~> 3.0.5'
   gem 'spring'
   gem 'spring-watcher-listen', '~> 2.0.0'
@@ -54,14 +52,10 @@ group :test, :development do
   gem 'byebug', platform: :mri
   gem 'rspec-rails'
   gem 'factory_girl_rails', '~> 4.0'
-  gem 'stripe-ruby-mock', '2.0.0'
 end
 
 group :test do
   gem 'capybara'
-  gem 'climate_control'
-  gem 'launchy'
-  gem 'selenium-webdriver'
   gem 'database_cleaner'
   gem 'test_after_commit', '~> 0.4.2'
 end
