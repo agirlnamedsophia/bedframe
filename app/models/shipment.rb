@@ -28,6 +28,7 @@ class Shipment < ActiveRecord::Base
   private
 
   def set_warehouse
+    debugger
     warehouse = Warehouse.with_available_inventory(shipment_products)
     if warehouse.present?
       self.warehouse = warehouse

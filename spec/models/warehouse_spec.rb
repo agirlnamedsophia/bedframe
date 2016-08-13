@@ -12,7 +12,10 @@ RSpec.describe Warehouse, type: :model do
     it 'keeps a running tab of product inventory scoped to warehouse' do
     end
 
-    it 'decrements warehouse_product available_inventory if shipment is fullfilled' do
+    it 'decrements warehouse_product#available_inventory if shipment is fullfilled' do
+    end
+
+    it 'does nothing to warehouse_product#available_inventory of total shipment cannot be fulfilled' do
     end
   end
 end

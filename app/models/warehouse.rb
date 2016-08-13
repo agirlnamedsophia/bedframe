@@ -12,7 +12,7 @@ class Warehouse < ActiveRecord::Base
   scope :by_product, ->(product_ids) {
     joins(:warehouse_products).where(
       warehouse_products: { product: product_ids }
-    ).distinct
+    )
   }
 
   # relationships

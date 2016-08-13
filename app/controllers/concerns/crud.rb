@@ -9,6 +9,7 @@ module Crud
   def index
     respond_to do |format|
       format.html
+      format.json
     end
   end
 
@@ -71,9 +72,7 @@ module Crud
 
   def current_set
     @current_set ||= (
-      query = apply_scopes(klass)
-      query = query.ordered
-      extend_current_set(query.page(params[:page]))
+      klass.all
     )
   end
 
