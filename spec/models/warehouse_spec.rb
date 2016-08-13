@@ -4,11 +4,14 @@ RSpec.describe Warehouse, type: :model do
   describe '#update_available_inventory!' do
     context 'when there is a new shipment' do
       it 'decrements associated warehouse_product.available_inventory' do
-      end
-    end
+        warehouse = create(:warehouse)
+        products = warehouse.warehouse_products
+        inventory_orig = products.first.available_inventory
 
-    context 'when there is no new shipment' do
-      it 'does not update warehouse_product.available_inventory' do
+        expect(warehouse.has_available_inventory(products.first)).to eq true
+        warehouse.shipments << create(:shipment, :with_products, product: products.first)
+        expect(warehouse.has_available_inventory(products.first)).to eq false
+        expect(products.first.available_inventory).to < inventory_orig
       end
     end
   end

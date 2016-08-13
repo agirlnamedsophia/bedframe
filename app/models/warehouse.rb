@@ -10,6 +10,14 @@ class Warehouse < ActiveRecord::Base
   validates :name, :address_1, :city, :region,
             :country, :postal_code, presence: true
 
+  def has_available_inventory(product_id)
+    warehouse_products.where(
+      'warehouse_products.product_id = ? AND '\
+      'warehouse_products.available_inventory > ?',
+      product_id, 0
+    ).any?
+  end
+
   def active_shipments
     shipments.processing
   end
