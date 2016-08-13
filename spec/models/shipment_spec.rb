@@ -13,17 +13,15 @@ RSpec.describe Shipment, type: :model do
 
       warehouses = create_list(:warehouse, 3)
       warehouses[1..-1].each do |w|
-        w.warehouse_products << [product_a, product_b]
+        w.products << [product_a, product_b]
       end
-      warehouses.first.warehouse_products << product_c
+      warehouses.first.products << product_c
 
-      shipment_a = build(:shipment, shipment_products: product_a)
-      shipment_b = build(:shipment, shipment_products: [product_b, product_c])
-      shipment_c = build(:shipment, shipment_products: [product_a, product_b])
+      shipment_a = build(:shipment, :with_products, set_custom_products: true, product_overrides: product_a)
+      shipment_b = build(:shipment, :with_products, set_custom_products: true, product_overrides: [product_b, product_c])
+      shipment_c = build(:shipment, :with_products, set_custom_products: true, product_overrides: [product_a, product_b])
 
-      expect(shipment_a.save!) {
-        debugger
-      }
+      debugger
     end
 
     it 'sets shipment to :on_hold if no warehouse can satisfy the whole order' do
