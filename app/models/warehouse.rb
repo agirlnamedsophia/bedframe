@@ -4,8 +4,14 @@ class Warehouse < ActiveRecord::Base
   scope :has_inventory, -> shipment_product {
     joins(:warehouse_products).where('warehouse_products.product_id = ? '\
       'AND warehouse_products.available_inventory >= ?',
-      shipment_product.id, shipment_product.quantity
+      shipment_product.product_id, shipment_product.quantity
     )
+  }
+
+  scope :by_product, -> product_ids {
+    joins(:warehouse_products).where(
+      warehouse_products: { product: product_ids }
+    ).distinct
   }
   validates :name, :address_1, :city, :region,
             :country, :postal_code, presence: true
@@ -23,33 +29,15 @@ class Warehouse < ActiveRecord::Base
   end
 
   class << self
+
     def with_available_inventory(shipment_products)
       product_ids = shipment_products.map(&:product_id)
 
-      # 1. for each shipment product there is one warehouse product
-      warehouses = joins(:warehouse_products)
-                    .where(warehouse_products: { product: product_ids } )
-                    .distinct
-
-      # 2. find the warehouse that has enough of the shipment_products
-      warehouses.select do |warehouse|
-        warehouse_products = warehouse.warehouse_products
-        return false if warehouse_products.length < shipment_products.length
-
-        shippable_products = shipment_products.select do |shipment_product|
-          product_id = shipment_product.product_id
-          insufficient_inventory = proc do |wp|
-                                     wp.product.id == product_id &&
-                                     wp.available_inventory < shipment_product.quantity
-                                   end
-          warehouse_products.to_a.delete_if(&insufficient_inventory)
-          warehouse_products && warehouse_products.pluck(:product_id).include?(product_id)
-        end
-
-        if shippable_products.any? && shippable_products.length == shipment_products.length
-          return warehouse
-        end
+      query = Warehouse.by_product(product_ids)
+      shipment_products.each do |product|
+        query = query.public_send(:has_inventory, product)
       end
+      query && query.first
     end
   end
 end
