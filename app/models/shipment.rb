@@ -6,7 +6,7 @@ class Shipment < ActiveRecord::Base
   }
 
   # callbacks
-  before_validation :set_warehouse, on: :create
+  before_validation :set_warehouse!, on: :create
 
   # relationships
   belongs_to :warehouse
@@ -36,12 +36,15 @@ class Shipment < ActiveRecord::Base
 
   private
 
-  def set_warehouse
+  def set_warehouse!
     return unless shipment_products.present?
     warehouse = Warehouse.with_available_inventory(shipment_products)
     if warehouse.present?
       self.warehouse = warehouse
       # send shipment product hash to warehouse to keep tally of inventory
+      if warehouse_id_changed?
+        self.status = :processing
+      end
       warehouse.update_available_inventory!(purchased_products_h)
     else
       self.status = :on_hold

@@ -39,8 +39,10 @@ class Warehouse < ActiveRecord::Base
       clause_args = []
 
       shipment_products.each do |product|
-        clause << 'warehouse_products.product_id = ? AND '\
-                  'warehouse_products.available_inventory >= ?'
+        clause << '('\
+                    'warehouse_products.product_id = ? AND '\
+                    'warehouse_products.available_inventory >= ?'\
+                  ')'
         clause_args << product.product_id
         clause_args << product.quantity
       end
@@ -48,11 +50,16 @@ class Warehouse < ActiveRecord::Base
 
       query = query.where(*query_args).distinct
 
-      query.select do |query|
+      warehouse = query.select do |query|
+        # database product_ids
         warehouse_product_ids = Set.new(query.warehouse_products.pluck(:product_id))
+        # in memory product_ids
         shipment_product_ids = Set.new(shipment_products.map(&:product_id))
-        (warehouse_product_ids & shipment_product_ids) == shipment_product_ids && query
+        # find intersection and validate
+        ((warehouse_product_ids & shipment_product_ids) == shipment_product_ids) && query
       end.first
+      debugger
+      warehouse
     end
   end
 end

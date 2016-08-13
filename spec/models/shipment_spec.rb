@@ -7,9 +7,6 @@ RSpec.describe Shipment, type: :model do
     let(:product_b) { create(:product, name: 'Product B') }
     let(:product_c) { create(:product, name: 'Product C') }
 
-    # Try writing some specs around assigning shipments to warehouses based on inventory,
-    # so that a shipment that contains product X gets assigned to ship out of a warehouse
-    # that has inventory of product X rather than another warehouse that does not have any X.
     it 'routes shipments to warehouse with sufficient stock' do
       warehouse_a = create(:warehouse, name: 'Warehouse A')
       warehouse_a.warehouse_products << build(
@@ -29,7 +26,7 @@ RSpec.describe Shipment, type: :model do
       [product_a, product_c].each do |product|
         warehouse_c.warehouse_products << build(
           :warehouse_product,
-          product: product_c,
+          product: product,
           available_inventory: 4
         )
       end
@@ -57,21 +54,24 @@ RSpec.describe Shipment, type: :model do
           quantity: 2
         )
       end
-
       expect(shipment_b.save).to eq true
 
-      # this should not be set (but it is) because the warehouse doesn't have enough stock
+      # this should not be nil because no warehouse can satisfy this shipment
       expect(shipment_b.warehouse).to eq nil
       warehouse_b.warehouse_products.reload
-
       expect(shipment_b.status).to eq 'on_hold'
+
       warehouse_c.warehouse_products << build(
         :warehouse_product,
-        product: product_a,
+        product: product_b,
         available_inventory: 2
       )
-      expect(shipment_b.save).to eq true
-      expect(shipment_b.warehouse).to eq nil
+      warehouse_c.warehouse_products.reload
+      shipment_b.send(:set_warehouse!)
+      expect(shipment_b.warehouse).to eq warehouse_c
+      expect(shipment_b.status).to eq 'processing'
+
+      warehouse_c.warehouse_products.reload
 
       shipment_c = build(:shipment, name: 'Shipment C', set_custom_products: true)
       [product_a, product_b].each do |product|
@@ -82,11 +82,13 @@ RSpec.describe Shipment, type: :model do
           quantity: 1
         )
       end
+      warehouse_b.warehouse_products.reload
+
       expect(shipment_c.save).to eq true
       expect(shipment_c.warehouse).to eq warehouse_b
     end
 
-    it 'sets shipment to :on_hold if no warehouse can satisfy the whole order' do
-    end
+    # it 'sets shipment to :on_hold if no warehouse can satisfy the whole order' do
+    # end
   end
 end
