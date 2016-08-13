@@ -34,17 +34,21 @@ class Shipment < ActiveRecord::Base
 
     if warehouse.present?
       self.warehouse = warehouse
-      if warehouse_id_changed? && on_hold?
-        self.status = :processing
-      end
+      set_to_processing!
       warehouse.update_available_inventory!(products_to_ship)
     else
       self.status = :on_hold
     end
   end
 
+  def set_to_processing!
+    if on_hold?
+      self.status = :processing
+    end
+  end
+
   def fulfill!
-    return unless on_hold?
+    return false if on_hold?
     self.status = :fulfilled
     save
   end

@@ -16,5 +16,10 @@ FactoryGirl.define do
         shipment.warehouse = build(:warehouse)
       end
     end
+
+    trait :on_hold do
+      status Shipment.statuses[:on_hold]
+      warehouse nil
+    end
   end
 end

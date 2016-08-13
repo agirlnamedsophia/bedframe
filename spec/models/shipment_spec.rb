@@ -2,41 +2,41 @@ require 'rails_helper'
 
 RSpec.describe Shipment, type: :model do
 
+  def expect_valid_shipment(shipment, warehouse)
+    expect(shipment.save).to eq true
+    expect(shipment.warehouse).to eq warehouse
+    if warehouse
+      warehouse.warehouse_products.reload
+    end
+  end
+
+  def build_warehouse_products(warehouse, products, inventory)
+    products.each do |product|
+      warehouse.warehouse_products << build(
+        :warehouse_product,
+        product: product,
+        available_inventory: inventory
+      )
+    end
+  end
+
+  def build_shipment_products(shipment, products, quantity)
+    products.each do |product|
+      shipment.shipment_products << build(
+        :shipment_product,
+        shipment: shipment,
+        product: product,
+        quantity: quantity
+      )
+    end
+  end
+
   describe '#set_warehouse' do
-    let(:product_a) { create(:product, name: 'Product A') }
-    let(:product_b) { create(:product, name: 'Product B') }
-    let(:product_c) { create(:product, name: 'Product C') }
+    let!(:product_a) { create(:product, name: 'Product A') }
+    let!(:product_b) { create(:product, name: 'Product B') }
+    let!(:product_c) { create(:product, name: 'Product C') }
 
     context 'when there are several shipments and warehouses' do
-      def expect_valid_shipment(shipment, warehouse)
-        expect(shipment.save).to eq true
-        expect(shipment.warehouse).to eq warehouse
-        if warehouse
-          warehouse.warehouse_products.reload
-        end
-      end
-
-      def build_warehouse_products(warehouse, products, inventory)
-        products.each do |product|
-          warehouse.warehouse_products << build(
-            :warehouse_product,
-            product: product,
-            available_inventory: inventory
-          )
-        end
-      end
-
-      def build_shipment_products(shipment, products, quantity)
-        products.each do |product|
-          shipment.shipment_products << build(
-            :shipment_product,
-            shipment: shipment,
-            product: product,
-            quantity: quantity
-          )
-        end
-      end
-
       it 'routes shipments to a warehouse that has sufficient stock for the shipment' do
         warehouse_a = create(:warehouse, name: 'Warehouse A')
         build_warehouse_products(warehouse_a, [product_a], 2)
@@ -68,7 +68,7 @@ RSpec.describe Shipment, type: :model do
         )
         warehouse_c.warehouse_products.reload
 
-        shipment_b.send(:set_warehouse!)
+        shipment_b.send(:set_warehouse_and_update_warehouse_inventory!)
         expect_valid_shipment(shipment_b, warehouse_c)
         expect(shipment_b.status).to eq 'processing'
 
@@ -98,11 +98,19 @@ RSpec.describe Shipment, type: :model do
   describe '#fulfill!' do
     context 'when on_hold' do
       it 'does not fulfill the shipment' do
+        shipment = create(:shipment, :on_hold)
+        expect(shipment.send(:fulfill!)).to eq false
       end
     end
 
     context 'when processing' do
       it 'fulfills the shipment' do
+        shipment = build(:shipment)
+        warehouse = shipment.warehouse
+        build_shipment_products(shipment, warehouse.products, 1)
+        expect_valid_shipment(shipment, warehouse)
+        shipment.update_column(:status, Shipment.statuses[:processing])
+        expect(shipment.send(:fulfill!)).to eq true
       end
     end
   end
