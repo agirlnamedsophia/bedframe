@@ -36,7 +36,7 @@ RSpec.describe Shipment, type: :model do
 
       # 1) create a shipment and confirm warehouse is accurate
       shipment_a = build(:shipment, set_custom_products: true)
-      shipment_a.shipment_products << create(
+      shipment_a.shipment_products << build(
         :shipment_product,
         shipment: shipment_a,
         product: product_a,
@@ -44,38 +44,34 @@ RSpec.describe Shipment, type: :model do
       )
       expect(shipment_a.save).to eq true
       expect(shipment_a.warehouse).to eq warehouse_a
+      warehouse_a.warehouse_products.reload
 
       # 2) create another shipment that cannot be fulfilled
       shipment_b = build(:shipment, set_custom_products: true)
       [product_a, product_b, product_c].each do |product|
-        shipment_b.shipment_products << create(
+        shipment_b.shipment_products << build(
           :shipment_product,
           shipment: shipment_b,
           product: product,
           quantity: 2
         )
       end
-      debugger
-
       expect(shipment_b.save).to eq true
 
-      # this should not be set because the warehouse doesn't have enough stock
-      expect(shipment_b.warehouse).to eq nil
-      expect(shipment_b.status).to eq Shipment.statuses[:procesing]
-
+      # this should not be set (but it is) because the warehouse doesn't have enough stock
+      expect(shipment_b.warehouse).to eq warehouse_b
+      expect(shipment_b.status).to eq 'processing'
       warehouse_c.warehouse_products << build(
         :warehouse_product,
-        product: product_b,
+        product: product_a,
         available_inventory: 2
       )
-
-      debugger
       expect(shipment_b.save).to eq true
       expect(shipment_b.warehouse).to eq warehouse_c
 
       shipment_c = build(:shipment, set_custom_products: true)
       [product_a, product_b].each do |product|
-        shipment_c.shipment_product << create(
+        shipment_c.shipment_product << build(
           :shipment_product,
           product: product,
           shipment: shipment_c,
