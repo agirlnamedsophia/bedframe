@@ -21,21 +21,19 @@ class Shipment < ActiveRecord::Base
 
   validates :name, :warehouse, presence: true
   validates :warehouse, presence: true, if: proc { |shipment|
-    shipment.status.include?(:processing, :fulfilled)
+    %w(processing fulfilled).include?(shipment.status)
   }
   validate :at_least_one_product
 
   private
 
   def set_warehouse
-    debugger
     warehouse = Warehouse.with_available_inventory(shipment_products)
     if warehouse.present?
       self.warehouse = warehouse
     else
       self.status = :on_hold
     end
-    save
   end
 
   def fulfill!

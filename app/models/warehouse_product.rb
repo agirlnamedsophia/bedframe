@@ -1,10 +1,14 @@
 class WarehouseProduct < ActiveRecord::Base
+
+  # scopes
+  scope :ordered, -> { order(updated_at: :desc) }
+
   # callbacks
   before_validation :set_available_inventory
 
   # relationships
-  belongs_to :product, touch: true
-  belongs_to :warehouse, touch: true
+  belongs_to :product, inverse_of: :warehouse_products, touch: true
+  belongs_to :warehouse, inverse_of: :warehouse_products
 
   # validations
   validates :product, :warehouse, :available_inventory, presence: true
