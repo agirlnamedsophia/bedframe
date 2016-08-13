@@ -21,5 +21,8 @@ RSpec.describe Shipment, type: :model do
       shipment_b = build(:shipment, shipment_products: [product_b, product_c])
       shipment_c = build(:shipment, shipment_products: [product_a, product_b])
     end
+
+    it 'sets shipment to :on_hold if no warehouse can satisfy the whole order' do
+    end
   end
 end

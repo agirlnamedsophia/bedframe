@@ -1,7 +1,8 @@
 class Shipment < ActiveRecord::Base
   enum status: {
     processing: 0,
-    fulfilled: 1
+    fulfilled: 1,
+    on_hold: 2
   }
 
   # callbacks
@@ -19,31 +20,28 @@ class Shipment < ActiveRecord::Base
   validates_associated :shipment_products
 
   validates :name, :warehouse, presence: true
-  validates :warehouse, presence: true
+  validates :warehouse, presence: true, if: proc { |shipment|
+    shipment.status.include?(:processing, :fulfilled)
+  }
   validate :at_least_one_product
-
-  def products_included
-    shipment_products.map do |shipment_product|
-      {
-        id: shipment_product.product_id,
-        quantity: shipment_product.quantity
-      }
-    end
-  end
 
   private
 
   def set_warehouse
     warehouse = Warehouse.with_available_inventory(shipment_products)
-    self.warehouse = warehouse
+    if warehouse.present?
+      self.warehouse = warehouse
+    else
+      self.status = :on_hold
+    end
+    save
   end
 
-  def mark_as_fulfilled!
-    # TODO: determine when to hit this method
+  def fulfill!
     shipment_products.map do |sp|
       sp.product.update_available_inventory!(sp.quantity)
     end
-    self.status = fulfilled
+    self.status = :fulfilled
     save
   end
 
