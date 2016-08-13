@@ -19,7 +19,7 @@ class Shipment < ActiveRecord::Base
   # validations
   validates_associated :shipment_products
 
-  validates :name, :warehouse, presence: true
+  validates :name, presence: true
   validates :warehouse, presence: true, if: proc { |shipment|
     %w(processing fulfilled).include?(shipment.status)
   }
@@ -37,6 +37,7 @@ class Shipment < ActiveRecord::Base
   private
 
   def set_warehouse
+    return unless shipment_products.present?
     warehouse = Warehouse.with_available_inventory(shipment_products)
     if warehouse.present?
       self.warehouse = warehouse

@@ -33,19 +33,10 @@ class Warehouse < ActiveRecord::Base
 
   class << self
     def with_available_inventory(shipment_products)
-      # This isn't working properly OR specs are just caching everything
-      # this needs to find all warehouses that have all
-      # shipment_products in their warehouse_products
-      # and that have enough inventory
-      product_ids = shipment_products.map(&:product_id)
-
       # 1. get list of warehouses that house these products
       query = Warehouse.joins(:warehouse_products)
       clause = []
       clause_args = []
-
-      clause << 'warehouse_products.product_id IN(?)'
-      clause_args << product_ids
 
       shipment_products.each do |product|
         clause << 'warehouse_products.product_id = ? AND '\
@@ -55,8 +46,12 @@ class Warehouse < ActiveRecord::Base
       end
       query_args = [clause.join(' OR '), *clause_args]
 
-      query = query.where(*query_args).select do |query|
-        query.warehouse_products.pluck(:id) & product_ids
+      query = query.where(*query_args).distinct
+
+      query.select do |query|
+        warehouse_product_ids = Set.new(query.warehouse_products.pluck(:product_id))
+        shipment_product_ids = Set.new(shipment_products.map(&:product_id))
+        (warehouse_product_ids & shipment_product_ids) == shipment_product_ids && query
       end.first
     end
   end

@@ -7,14 +7,13 @@ FactoryGirl.define do
     name Faker::Commerce.product_name
     status Shipment.statuses[:processing]
 
-    association :warehouse, strategy: :build
-
     after(:build) do |shipment, evaluator|
       if evaluator.set_custom_products == false
         shipment.shipment_products << create(
           :shipment_product,
           shipment: shipment
         )
+        shipment.warehouse = build(:warehouse)
       end
     end
   end

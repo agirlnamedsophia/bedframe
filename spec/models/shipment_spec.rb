@@ -35,7 +35,7 @@ RSpec.describe Shipment, type: :model do
       end
 
       # 1) create a shipment and confirm warehouse is accurate
-      shipment_a = build(:shipment, set_custom_products: true)
+      shipment_a = build(:shipment, name: 'Shipment A', set_custom_products: true)
       shipment_a.shipment_products << build(
         :shipment_product,
         shipment: shipment_a,
@@ -44,10 +44,11 @@ RSpec.describe Shipment, type: :model do
       )
       expect(shipment_a.save).to eq true
       expect(shipment_a.warehouse).to eq warehouse_a
+
       warehouse_a.warehouse_products.reload
 
       # 2) create another shipment that cannot be fulfilled
-      shipment_b = build(:shipment, set_custom_products: true)
+      shipment_b = build(:shipment, name: 'Shipment B', set_custom_products: true)
       [product_a, product_b, product_c].each do |product|
         shipment_b.shipment_products << build(
           :shipment_product,
@@ -56,22 +57,23 @@ RSpec.describe Shipment, type: :model do
           quantity: 2
         )
       end
+
       expect(shipment_b.save).to eq true
 
       # this should not be set (but it is) because the warehouse doesn't have enough stock
-      expect(shipment_b.warehouse).to eq warehouse_b
+      expect(shipment_b.warehouse).to eq nil
       warehouse_b.warehouse_products.reload
 
-      expect(shipment_b.status).to eq 'processing'
+      expect(shipment_b.status).to eq 'on_hold'
       warehouse_c.warehouse_products << build(
         :warehouse_product,
         product: product_a,
         available_inventory: 2
       )
       expect(shipment_b.save).to eq true
-      expect(shipment_b.warehouse).to eq warehouse_b
+      expect(shipment_b.warehouse).to eq nil
 
-      shipment_c = build(:shipment, set_custom_products: true)
+      shipment_c = build(:shipment, name: 'Shipment C', set_custom_products: true)
       [product_a, product_b].each do |product|
         shipment_c.shipment_products << build(
           :shipment_product,
