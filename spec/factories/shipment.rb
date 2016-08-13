@@ -7,7 +7,7 @@ FactoryGirl.define do
     name Faker::Commerce.product_name
     status Shipment.statuses[:processing]
 
-    association :warehouse
+    association :warehouse, strategy: :build
 
     after(:build) do |shipment, evaluator|
       if evaluator.set_custom_products == false
@@ -16,10 +16,6 @@ FactoryGirl.define do
           shipment: shipment
         )
       end
-    end
-
-    trait :fulfilled do
-      fulfilled_at DateTime.current
     end
   end
 end

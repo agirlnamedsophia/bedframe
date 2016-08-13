@@ -38,13 +38,11 @@ RSpec.describe Shipment, type: :model do
       shipment_a = build(:shipment, set_custom_products: true)
       shipment_a.shipment_products << create(
         :shipment_product,
-        set_custom_products: true,
         shipment: shipment_a,
         product: product_a,
         quantity: 1
       )
       expect(shipment_a.save).to eq true
-      debugger
       expect(shipment_a.warehouse).to eq warehouse_a
 
       # 2) create another shipment that cannot be fulfilled
@@ -52,12 +50,12 @@ RSpec.describe Shipment, type: :model do
       [product_a, product_b, product_c].each do |product|
         shipment_b.shipment_products << create(
           :shipment_product,
-          set_custom_products: true,
           shipment: shipment_b,
           product: product,
           quantity: 2
         )
       end
+      debugger
 
       expect(shipment_b.save).to eq true
 
@@ -79,7 +77,6 @@ RSpec.describe Shipment, type: :model do
       [product_a, product_b].each do |product|
         shipment_c.shipment_product << create(
           :shipment_product,
-          set_custom_products: true,
           product: product,
           shipment: shipment_c,
           quantity: 1

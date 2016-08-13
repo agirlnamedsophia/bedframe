@@ -5,7 +5,7 @@ class WarehouseProduct < ActiveRecord::Base
 
   # relationships
   belongs_to :product, inverse_of: :warehouse_products
-  belongs_to :warehouse, inverse_of: :warehouse_products
+  belongs_to :warehouse, inverse_of: :warehouse_products, touch: true
 
   # validations
   validates :product, :warehouse, :available_inventory, presence: true

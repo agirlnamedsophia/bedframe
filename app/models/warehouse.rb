@@ -52,8 +52,6 @@ class Warehouse < ActiveRecord::Base
       end
       query_args = [clause.join(' OR '), *clause_args]
 
-      debugger
-
       query = query.where(*query_args).select do |query|
         query.warehouse_products.pluck(:id) & product_ids
       end.first
