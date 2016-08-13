@@ -1,9 +1,4 @@
 class Warehouse < ActiveRecord::Base
-  # A warehouse has_many shipments (need to ship) and has_many fullfillments
-  #   (has_shipped) and has_many warehouse_products
-  # A warehouse needs to keep a tally on inventory
-  # A warehouse is a facility that can store products and maintain a list of
-  #   shipments that it will be responsible for fulfilling
   attr_accessor :has_inventory
 
   scope :has_inventory, -> shipment_product {
