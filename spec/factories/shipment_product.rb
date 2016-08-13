@@ -1,8 +1,8 @@
 FactoryGirl.define do
   factory :shipment_product do
-    quantity 1
+    sequence(:quantity)
 
-    association :product, strategy: :build
-    association :shipment, strategy: :build
+    association :product
+    association :shipment
   end
 end

@@ -5,26 +5,16 @@ FactoryGirl.define do
     end
 
     name Faker::Commerce.product_name
-    status Shipment.statuses[:active]
+    status Shipment.statuses[:processing]
 
     association :warehouse
 
     after(:build) do |shipment, evaluator|
-      if set_custom_products == false
-        2.times do
-          shipment.products << build(
-            :product
-          )
-        end
-      end
-    end
-
-    trait :with_products do
-      after(:build) do |shipment, evaluator|
-        if set_custom_products == true
-          debugger
-          shipment.products << evaluator.products
-        end
+      if evaluator.set_custom_products == false
+        shipment.shipment_products << create(
+          :shipment_product,
+          shipment: shipment
+        )
       end
     end
 

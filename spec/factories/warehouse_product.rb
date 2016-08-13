@@ -1,8 +1,8 @@
 FactoryGirl.define do
   factory :warehouse_product do
-    sequence(:available_inventory)
+    available_inventory 4
 
-    association :product, strategy: :build
-    association :warehouse, strategy: :build
+    association :product
+    association :warehouse
   end
 end

@@ -25,12 +25,23 @@ class Shipment < ActiveRecord::Base
   }
   validate :at_least_one_product
 
+  def purchased_products_h
+    shipment_products.map do |p|
+      {
+        id: p.product_id,
+        quantity: p.quantity
+      }
+    end
+  end
+
   private
 
   def set_warehouse
     warehouse = Warehouse.with_available_inventory(shipment_products)
     if warehouse.present?
       self.warehouse = warehouse
+      # send shipment product hash to warehouse to keep tally of inventory
+      warehouse.update_available_inventory!(purchased_products_h)
     else
       self.status = :on_hold
     end

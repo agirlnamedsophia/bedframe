@@ -52,7 +52,7 @@ unless Rails.env.production?
     all_products.each do |product|
       warehouse.warehouse_products << WarehouseProduct.new(
         product: product,
-        available_inventory: product.inventory
+        available_inventory: 10
       )
      end
   end
