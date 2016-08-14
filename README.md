@@ -5,7 +5,8 @@ The apps handles warehouses, shipments, and products.
 * The best place to understand this mini-application is to check out [the models](https://github.com/agirlnamedsophia/bedframe/tree/master/app/models) and [the model specs](https://github.com/agirlnamedsophia/bedframe/tree/master/spec/models)
 
 * A warehouse has many shipments and warehouse_products (with inventory unique to location),
-  and it is the goal of this app to find the right warehouse for each shipment to ship the products
+  and it is the goal of this app to find the right warehouse for each shipment so folks can get their mattresses! 
+  (or sheets, or pillows, or night-stand candles...)
 
 * When the warehouse meets the needs of the shipment, it updates its warehouse_product available inventory
   (kind of like a stock tally) and can then fulfill the shipment

@@ -43,11 +43,24 @@ module Crud
     respond_to do |format|
       ActiveRecord::Base.delay_touching do
         if current_object.update(safe_params)
-          format.json { render json: { object: current_object.name, success: true }, status: :ok}
-          format.html { redirect_to(index_path, notice: notice("Successfully updated#{name}!") ) }
+          format.json do
+            render json: {
+              object: current_object.name, success: true }, status: :ok
+            }
+          end
+          format.html {
+            redirect_to(index_path, notice: notice("Successfully updated#{name}!") )
+          }
         else
-          format.json { render json: { error: "could not update #{current_object.name}"}, status: :unprocessable_entity }
-          format.html { render :edit, alert: 'There was an error' }
+          format.json {
+            render json: {
+              error: "could not update #{current_object.name}"
+            },
+            status: :unprocessable_entity
+          }
+          format.html {
+            render :edit, alert: 'There was an error'
+          }
         end
       end
     end

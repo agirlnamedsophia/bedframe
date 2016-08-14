@@ -47,9 +47,8 @@ class Shipment < ActiveRecord::Base
   end
 
   def set_to_processing!
-    if on_hold?
-      self.status = :processing
-    end
+    return false unless on_hold?
+    self.status = :processing
   end
 
   def at_least_one_product

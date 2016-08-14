@@ -8,7 +8,7 @@ RSpec.describe Warehouse, type: :model do
         warehouse = create(:warehouse)
         w_product = warehouse.warehouse_products.first
         inventory_orig = w_product.available_inventory
-        expect(warehouse.has_inventory_for_product(w_product.product_id)).to eq true
+        expect(warehouse.inventory_for_product?(w_product.product_id)).to eq true
 
         shipment = build(:shipment, set_custom_products: true)
         shipment.shipment_products << build(:shipment_product,
@@ -19,7 +19,7 @@ RSpec.describe Warehouse, type: :model do
         shipment.save!
 
         expect(w_product.reload.available_inventory).to be < inventory_orig
-        expect(warehouse.has_inventory_for_product(w_product.product_id)).to eq false
+        expect(warehouse.inventory_for_product?(w_product.product_id)).to eq false
       end
     end
   end

@@ -13,13 +13,9 @@ class Warehouse < ActiveRecord::Base
   validates :name, :address_1, :city, :region,
             :country, :postal_code, presence: true
 
-  def has_inventory_for_product(product_id)
+  def inventory_for_product?(product_id)
     product = warehouse_products.where(product_id: product_id).first
-    if product.present?
-      return product.available_inventory > 0
-    else
-      return false
-    end
+    return product.available_inventory > 0 if product.present?
   end
 
   def active_shipments
@@ -42,9 +38,9 @@ class Warehouse < ActiveRecord::Base
   def update_available_inventory!(shipment_products)
     wp_ids = warehouse_products.pluck(:product_id)
     sp_ids = shipment_products.map(&:product_id)
-
-    if wp_ids && sp_ids
-      product_id_to_update = (wp_ids & sp_ids).first
+    product_id_to_update = (wp_ids & sp_ids)
+    if product_id_to_update.any?
+      product_id_to_update = product_id_to_update.first
     else
       return false
     end
@@ -52,11 +48,12 @@ class Warehouse < ActiveRecord::Base
       sp.product_id == product_id_to_update
     end.first.quantity
 
-    warehouse_product = warehouse_products.where(product_id: product_id_to_update).first
+    warehouse_product = warehouse_products
+                        .where(
+                          product_id: product_id_to_update
+                        ).first
     warehouse_product.decrement_available_inventory!(quantity)
   end
-
-  private
 
   class << self
     def with_available_inventory(shipment_products)
@@ -80,11 +77,14 @@ class Warehouse < ActiveRecord::Base
 
       warehouse = query.select do |query|
         # pluck product_ids from DB
-        warehouse_product_ids = Set.new(query.warehouse_products.pluck(:product_id))
+        wp_ids = query.warehouse_products.pluck(:product_id)
+        warehouse_product_ids = Set.new(wp_ids)
         # map in memory product_ids
         shipment_product_ids = Set.new(shipment_products.map(&:product_id))
         # find intersection and validate
-        ((warehouse_product_ids & shipment_product_ids) == shipment_product_ids) && query
+        (
+          (warehouse_product_ids & shipment_product_ids) == shipment_product_ids
+        ) && query
       end.first
       warehouse
     end
