@@ -25,13 +25,18 @@ class Shipment < ActiveRecord::Base
   }
   validate :at_least_one_product
 
+  def fulfill!
+    return false if on_hold?
+    self.status = :fulfilled
+    save
+  end
+
   private
 
   def set_warehouse_and_update_warehouse_inventory!
     return unless shipment_products.present?
     products_to_ship = shipment_products
     warehouse = Warehouse.with_available_inventory(products_to_ship)
-
     if warehouse.present?
       self.warehouse = warehouse
       set_to_processing!
@@ -45,12 +50,6 @@ class Shipment < ActiveRecord::Base
     if on_hold?
       self.status = :processing
     end
-  end
-
-  def fulfill!
-    return false if on_hold?
-    self.status = :fulfilled
-    save
   end
 
   def at_least_one_product

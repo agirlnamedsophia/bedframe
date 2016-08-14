@@ -3,15 +3,23 @@ require 'rails_helper'
 RSpec.describe Warehouse, type: :model do
   describe '#update_available_inventory!' do
     context 'when there is a new shipment' do
+
       it 'decrements associated warehouse_product.available_inventory' do
         warehouse = create(:warehouse)
-        products = warehouse.warehouse_products
-        inventory_orig = products.first.available_inventory
+        w_product = warehouse.warehouse_products.first
+        inventory_orig = w_product.available_inventory
+        expect(warehouse.has_inventory_for_product(w_product.product_id)).to eq true
 
-        expect(warehouse.has_available_inventory(products.first)).to eq true
-        warehouse.shipments << create(:shipment, :with_products, product: products.first)
-        expect(warehouse.has_available_inventory(products.first)).to eq false
-        expect(products.first.available_inventory).to < inventory_orig
+        shipment = build(:shipment, set_custom_products: true)
+        shipment.shipment_products << build(:shipment_product,
+          shipment: shipment,
+          product: w_product.product,
+          quantity: w_product.available_inventory
+        )
+        shipment.save!
+
+        expect(w_product.reload.available_inventory).to be < inventory_orig
+        expect(warehouse.has_inventory_for_product(w_product.product_id)).to eq false
       end
     end
   end
@@ -21,12 +29,28 @@ RSpec.describe Warehouse, type: :model do
     let(:shipment) { build(:shipment, set_custom_products: true) }
 
     context 'when there is an active shipment passed in' do
+
       it 'sets shipment to fulfilled' do
+        shipment.shipment_products << build(:shipment_product,
+          shipment: shipment,
+          product: warehouse.warehouse_products.first.product
+        )
+        shipment.save!
+        expect(warehouse.fulfill_shipment!(shipment)).to eq true
+        expect(shipment.status).to eq 'fulfilled'
       end
     end
 
     context 'when there is an inactive shipment pass in' do
+
       it 'does not modify the shipment' do
+        shipment.shipment_products << build(:shipment_product,
+          shipment: shipment,
+          product: create(:product)
+        )
+        shipment.save!
+        expect(warehouse.fulfill_shipment!(shipment)).to eq false
+        expect(shipment.status).to eq 'on_hold'
       end
     end
   end

@@ -2,8 +2,10 @@
 
 The apps handles warehouses, shipments, and products.
 
-* A warehouse has many shipments and warehouse products (with limited inventory) to ship,
-  and it is the goal of this app to find the right warehouse for each shipment
+* The best place to understand this mini-application is to check out [the models](https://github.com/agirlnamedsophia/bedframe/tree/master/app/models) and [the model specs](https://github.com/agirlnamedsophia/bedframe/tree/master/spec/models)
+
+* A warehouse has many shipments and warehouse_products (with inventory unique to location),
+  and it is the goal of this app to find the right warehouse for each shipment to ship the products
 
 * When the warehouse meets the needs of the shipment, it updates its warehouse_product available inventory
   (kind of like a stock tally) and can then fulfill the shipment
@@ -14,12 +16,10 @@ The apps handles warehouses, shipments, and products.
 * System dependencies
   - postgres
 
-* Database creation
-  - `rake db:setup && rake db:reset`
-  this will seed some phony data if you want to mess around in the console, 
+* Database setup
+  - `rake db:setup && rake db:migrate`
+  this will seed some phony data if you want to mess around in the console,
   or you can just run the test suite
-
-* Database initialization
 
 * How to run the test suite
  - I develop with [ZEUS](https://github.com/burke/zeus) locally, so I just run "zeus test", but you can also

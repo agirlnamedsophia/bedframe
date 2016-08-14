@@ -99,7 +99,7 @@ RSpec.describe Shipment, type: :model do
     context 'when on_hold' do
       it 'does not fulfill the shipment' do
         shipment = create(:shipment, :on_hold)
-        expect(shipment.send(:fulfill!)).to eq false
+        expect(shipment.fulfill!).to eq false
       end
     end
 
@@ -110,7 +110,7 @@ RSpec.describe Shipment, type: :model do
         build_shipment_products(shipment, warehouse.products, 1)
         expect_valid_shipment(shipment, warehouse)
         shipment.update_column(:status, Shipment.statuses[:processing])
-        expect(shipment.send(:fulfill!)).to eq true
+        expect(shipment.fulfill!).to eq true
       end
     end
   end

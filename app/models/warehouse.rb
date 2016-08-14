@@ -1,6 +1,9 @@
 class Warehouse < ActiveRecord::Base
   attr_accessor :has_inventory
 
+  # scopes
+  scope :ordered, -> { order(updated_at: :asc) }
+
   # relationships
   has_many :products, through: :warehouse_products
   has_many :warehouse_products, -> { ordered }, inverse_of:
@@ -10,12 +13,13 @@ class Warehouse < ActiveRecord::Base
   validates :name, :address_1, :city, :region,
             :country, :postal_code, presence: true
 
-  def has_available_inventory(product_id)
-    warehouse_products.where(
-      'warehouse_products.product_id = ? AND '\
-      'warehouse_products.available_inventory > ?',
-      product_id, 0
-    ).any?
+  def has_inventory_for_product(product_id)
+    product = warehouse_products.where(product_id: product_id).first
+    if product.present?
+      return product.available_inventory > 0
+    else
+      return false
+    end
   end
 
   def active_shipments
@@ -36,12 +40,20 @@ class Warehouse < ActiveRecord::Base
   end
 
   def update_available_inventory!(shipment_products)
-    warehouse_products.map do |wp|
-      products = shipment_products.select do |product|
-        product.product_id == wp.product_id
-      end
-      products.map { |sp| wp.decrement_available_inventory!(sp.quantity) }
+    wp_ids = warehouse_products.pluck(:product_id)
+    sp_ids = shipment_products.map(&:product_id)
+
+    if wp_ids && sp_ids
+      product_id_to_update = (wp_ids & sp_ids).first
+    else
+      return false
     end
+    quantity = shipment_products.select do |sp|
+      sp.product_id == product_id_to_update
+    end.first.quantity
+
+    warehouse_product = warehouse_products.where(product_id: product_id_to_update).first
+    warehouse_product.decrement_available_inventory!(quantity)
   end
 
   private
@@ -50,7 +62,7 @@ class Warehouse < ActiveRecord::Base
     def with_available_inventory(shipment_products)
       # get list of warehouses that house these products
       # IRL could make sense to scope by shipment.address
-      query = Warehouse.joins(:warehouse_products)
+      query = Warehouse.ordered.joins(:warehouse_products)
       clause = []
       clause_args = []
 

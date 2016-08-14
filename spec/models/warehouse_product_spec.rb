@@ -7,14 +7,22 @@ RSpec.describe WarehouseProduct, type: :model do
         warehouse_product = create(:warehouse_product)
         inventory_orig = warehouse_product.available_inventory
         shipment = build(:shipment, set_custom_products: true)
-        shipment.shipment_products << create(:shipment_product,
-          product: warehouse_product.product
+        shipment.shipment_products << build(
+          :shipment_product,
+          product: warehouse_product.product,
+          quantity: 1
         )
+        shipment.save!
 
-        quantity = shipment.shipment_products
-                           .where(product_id: warehouse_product.id)
-                           .pluck(:quantity).reduce(:+)
-        expect(warehouse_product.reload.available_inventory).to eq inventory_orig - quantity
+        purchased_product = shipment.shipment_products.select do |sp|
+                              sp.product_id == warehouse_product.product_id
+                            end.first
+
+        quantity = purchased_product.quantity
+        diff = inventory_orig - quantity
+        diff = diff > 0 ? diff : 0
+
+        expect(warehouse_product.reload.available_inventory).to eq diff
       end
     end
   end
